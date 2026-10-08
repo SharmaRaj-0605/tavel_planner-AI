@@ -1,87 +1,201 @@
-# Multi-Agent-System-using-LangGraph-MCP-Supervisor-Guardrails-HITL
+# AI Travel Planner
 
-A demo multi-agent system that uses LangGraph and MCP to implement a travel-planning assistant with a Supervisor, input Guardrails, and Human-In-The-Loop (HITL) approval flows. The project includes a FastAPI frontend, example MCP server, and client helpers to demonstrate how agents, supervisors, and guardrails can be composed into a safe, reviewable planning pipeline.
+An AI-powered travel planning application that uses multiple specialized agents to turn a travel request into a structured travel plan.
 
-Key ideas:
-- Multi-agent coordination using LangGraph and MCP
-- Supervisor agent to manage complex workflows
-- Input guardrails to validate user requests
-- Human-in-the-loop approval for generated plans
+Instead of asking a single AI agent to handle the entire task, the application uses a supervisor-based multi-agent workflow. Different agents handle different parts of the trip, such as flights, hotels, weather, budget, and itinerary planning.
 
-Contents
-- `app.py`: FastAPI web frontend and API endpoints
-- `backend.py`: core agent orchestration / travel-planner logic
-- `mcp_client.py`: client helpers to interact with the MCP server
-- `custom_weather_mcp_server.py`: example MCP server for weather checks
-- `templates/`, `static/`: frontend UI assets (HTML, JS, CSS)
+The project is built around LangGraph and MCP, with guardrails and human-in-the-loop approval added to make the workflow more controlled and practical.
 
-Features
-- Interactive web UI for sending travel planning prompts
-- Endpoint for drafting travel plans and separate approval endpoint
-- Example MCP server demonstrating domain adapters (weather, checkpoints)
+---
 
-Prerequisites
-- Python 3.10+ (recommended)
-- Git (to clone the repo)
-- A virtual environment tool (venv) or similar
+## What It Does
 
-Quick start (Windows)
+A user can provide a request such as:
 
-1. Create and activate a virtual environment
+> Plan a 5-day trip from Delhi to Dubai for two people with a budget of ₹1,50,000.
 
-```powershell
-python -m venv .venv
-.venv\Scripts\Activate.ps1    # PowerShell
-```
+The system processes the request and coordinates different agents to build the travel plan.
 
-2. Install dependencies
+Depending on the request, the system can work with:
 
-```powershell
+- Flight information
+- Hotel information
+- Weather information
+- Budget planning
+- Daily itinerary generation
+
+The generated plan can also go through a human approval step before the final response is produced.
+
+---
+
+## Architecture
+
+The application follows a supervisor-based multi-agent architecture.
+
+```text
+                         User
+                           │
+                           ▼
+                    Guardrail Agent
+                           │
+                           ▼
+                   Supervisor Agent
+                           │
+          ┌────────────────┼────────────────┐
+          │                │                │
+          ▼                ▼                ▼
+     Flight Agent      Hotel Agent     Weather Agent
+          │                │                │
+          └────────────────┼────────────────┘
+                           │
+                           ▼
+                     Budget Agent
+                           │
+                           ▼
+                    Itinerary Agent
+                           │
+                           ▼
+                   Human Approval
+                           │
+                           ▼
+                    Final Travel Plan
+
+                    Main Components
+Supervisor Agent
+The supervisor acts as the central coordinator.
+It interprets the user's request, identifies the travel requirements, and decides which specialized agents should be involved.
+Flight Agent
+Handles flight-related information and communicates with aviation-related tools through MCP.
+Hotel Agent
+Handles hotel-related information based on the destination and travel requirements.
+Weather Agent
+Retrieves weather information for the destination using the weather MCP server.
+Budget Agent
+Organizes the estimated travel expenses and considers the user's budget when preparing the plan.
+Itinerary Agent
+Combines the information collected by the other agents and produces the final day-by-day travel plan.
+Guardrails
+The application includes a guardrail layer that checks incoming requests before the main travel workflow is executed.
+Human-in-the-Loop
+The application can generate a draft travel plan and wait for user approval before continuing with the final response.
+This allows the user to review the generated plan instead of relying completely on an autonomous workflow.
+MCP
+The project uses the Model Context Protocol (MCP) to connect agents with external tools.
+The current implementation includes MCP integrations for services such as:
+- Aviation data
+- Weather information
+- Web search
+A custom weather MCP server is also included in the project.
+AI Agents
+    │
+    ▼
+MCP Client
+    │
+    ├── Aviation MCP
+    ├── Weather MCP
+    └── Search MCP
+
+This keeps tool access separate from the core agent logic.
+Tech Stack
+Backend
+- Python
+- FastAPI
+- LangGraph
+- LangChain
+- PostgreSQL
+AI / Agents
+- Groq
+- LangGraph multi-agent workflow
+- MCP
+- Guardrails
+- Human-in-the-loop
+External Services
+- Tavily
+- AviationStack
+- OpenWeather
+Frontend
+- HTML
+- CSS
+- JavaScript
+Deployment
+- Docker
+- Render
+Project Structure
+travel_planner-AI/
+│
+├── static/
+│   ├── style.css
+│   └── script.js
+│
+├── templates/
+│   └── index.html
+│
+├── app.py
+├── backend.py
+├── mcp_client.py
+├── custom_weather_mcp_server.py
+├── requirements.txt
+├── Dockerfile
+├── .dockerignore
+├── .gitignore
+├── LICENSE
+└── README.md
+
+How It Works
+A typical request goes through the following process:
+1. User enters a travel request
+             ↓
+2. FastAPI receives the request
+             ↓
+3. Guardrail checks the request
+             ↓
+4. Supervisor analyzes the request
+             ↓
+5. Required agents are selected
+             ↓
+6. Agents use MCP tools / external services
+             ↓
+7. Information is combined
+             ↓
+8. Travel plan is generated
+             ↓
+9. User reviews the draft
+             ↓
+10. User approves or requests changes
+             ↓
+11. Final travel plan is returned
+
+Running Locally
+1. Clone the repository
+git clone https://github.com/SharmaRaj-0605/travel_planner-AI.git
+
+cd travel_planner-AI
+
+2. Create the Python environment
+Using Conda:
+conda create -n travel-agent python=3.11
+
+Activate it:
+conda activate travel-agent
+
+3. Install dependencies
 pip install -r requirements.txt
-```
 
-3. Run the FastAPI app (development)
+4. Configure environment variables
+Create a .env file in the project root.
+GROQ_API_KEY=your_groq_api_key
+TAVILY_API_KEY=your_tavily_api_key
+AVIATIONSTACK_API_KEY=your_aviationstack_api_key
+OPENWEATHER_API_KEY=your_openweather_api_key
+DATABASE_URL=your_postgresql_connection_string
+DEFAULT_ORIGIN_IATA=your_default_origin
 
-```powershell
-# option A (run module)
+If LangSmith tracing is enabled, add the corresponding LangSmith variables as well.
+Do not commit the .env file to GitHub.
+5. Start the application
 python app.py
 
-# option B (uvicorn)
-uvicorn app:app --reload --host 127.0.0.1 --port 8000
-```
+The application will be available at:
+(https://tavel-planner-ai.onrender.com)
 
-4. Open the web UI
-
-Visit(https://tavel-planner-ai.onrender.com/) in your browser to use the TripMate frontend.
-
-Running the MCP server (example)
-- The repository includes `custom_weather_mcp_server.py` as an example MCP server. Run it in a separate terminal if you want to experiment with custom adapters used by the demo.
-
-```powershell
-# start example MCP server (if needed)
-python custom_weather_mcp_server.py
-```
-
-API Endpoints
-- `POST /api/travel` — create or resume a travel planning thread. JSON: `{ "message": "<user prompt>", "thread_id": "optional-thread-id" }`
-- `POST /api/travel/approve` — approve or request revisions for a draft. JSON: `{ "thread_id": "<id>", "approved": true|false, "feedback": "optional" }`
-- `GET /health` — basic health check and features list
-
-Configuration & environment
-- Secrets and API keys are not included in the repo. Use environment variables or a `.env` file for any required keys consumed by `langgraph`, `langchain`, or other adapters.
-
-Development notes
-- The project keeps synchronous convenience wrappers in `backend.py` while running an async FastAPI server — `nest_asyncio` is applied in `app.py` to allow the sync helpers to call async MCP helpers.
-- Tests are not included; to experiment, interact with the web UI or call the API endpoints directly.
-
-Contributing
-- Contributions are welcome. Please open issues or pull requests for bug fixes, documentation improvements, or new adapter examples.
-
-License
-- This repository follows the license in the `LICENSE` file.
-
-Acknowledgements
-- Built as a demonstration of LangGraph + MCP patterns with supervisor and guardrail concepts.
-
-Contact
-- For questions or suggestions, open an issue or contact the repository owner.
+Open the URL in your browser.
