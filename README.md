@@ -52,7 +52,7 @@ uvicorn app:app --reload --host 127.0.0.1 --port 8000
 
 4. Open the web UI
 
-Visit http://127.0.0.1:8000 in your browser to use the TripMate frontend.
+Visit(https://tavel-planner-ai.onrender.com/) in your browser to use the TripMate frontend.
 
 Running the MCP server (example)
 - The repository includes `custom_weather_mcp_server.py` as an example MCP server. Run it in a separate terminal if you want to experiment with custom adapters used by the demo.
