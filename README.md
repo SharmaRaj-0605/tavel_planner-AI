@@ -60,8 +60,9 @@ The application follows a supervisor-based multi-agent architecture.
                            ▼
                     Final Travel Plan
 
-                    Main Components
-Supervisor Agent
+
+**Main Components**
+**Supervisor Agent**
 The supervisor acts as the central coordinator.
 It interprets the user's request, identifies the travel requirements, and decides which specialized agents should be involved.
 Flight Agent
